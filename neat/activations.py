@@ -12,11 +12,21 @@ def sigmoid_activation(z):
     z = max(-60.0, min(60.0, 5.0 * z))
     return 1.0 / (1.0 + math.exp(-z))
 
+def sigmoid2_activation(z):
+    z = max(-60.0, min(60.0, 5.0 * z))
+    return 1.0 / (1.0 + math.exp(-4.9 * z))     #5?
 
 def tanh_activation(z):
-    z = max(-60.0, min(60.0, 2.5 * z))
+    z = max(-60.0, min(60.0, 2.5 * z))          #2.5?
     return math.tanh(z)
 
+def tanh3_activation(z):
+    z = max(-60.0, min(60.0, 3.5 * z))          #3.5?
+    return math.tanh(3*z)
+
+def tanh5_activation(z):
+    z = max(-60.0, min(60.0, 5 * z))            #5?
+    return math.tanh(5*z)
 
 def sin_activation(z):
     z = max(-60.0, min(60.0, 5.0 * z))
@@ -119,7 +129,10 @@ class ActivationFunctionSet(object):
     def __init__(self):
         self.functions = {}
         self.add('sigmoid', sigmoid_activation)
+        self.add('sigmoid_4.9', sigmoid2_activation)
         self.add('tanh', tanh_activation)
+        self.add('tanh3', tanh3_activation)
+        self.add('tanh5', tanh5_activation)
         self.add('sin', sin_activation)
         self.add('gauss', gauss_activation)
         self.add('relu', relu_activation)
