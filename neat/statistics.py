@@ -30,6 +30,7 @@ class StatisticsReporter(BaseReporter):
         species_stats = {}
         for sid, s in species.species.items():
             species_stats[sid] = dict((k, v.fitness) for k, v in s.members.items())
+            #todo print("Species stats",species_stats[sid])
         self.generation_statistics.append(species_stats)
 
     def get_fitness_stat(self, f):

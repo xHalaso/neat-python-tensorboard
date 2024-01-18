@@ -3,6 +3,7 @@ from itertools import count
 
 from neat.config import ConfigParameter, DefaultClassConfig
 from neat.math_util import mean, stdev
+import statistics
 
 
 class Species(object):
@@ -22,7 +23,12 @@ class Species(object):
 
     def get_fitnesses(self):
         return [m.fitness for m in self.members.values()]
-
+    def get_MaxFitness(self):
+        return  max((f for f in self.get_fitnesses() if f is not None), default=None)
+    def get_MeanFitness(self):
+        filtered_fitnesses = [f for f in self.get_fitnesses() if f is not None]
+        mean_fitness = statistics.mean(filtered_fitnesses) if filtered_fitnesses else None
+        return  mean_fitness
 
 class GenomeDistanceCache(object):
     def __init__(self, config):

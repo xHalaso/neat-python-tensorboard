@@ -29,3 +29,11 @@ venv
 build
 dist
 neat_python.egg-info
+neat_tb.egg-info/top_level.txt
+neat_tb.egg-info/SOURCES.txt
+neat_tb.egg-info/PKG-INFO
+neat_tb.egg-info/dependency_links.txt
+neat.egg-info/top_level.txt
+neat.egg-info/SOURCES.txt
+neat.egg-info/PKG-INFO
+neat.egg-info/dependency_links.txt
