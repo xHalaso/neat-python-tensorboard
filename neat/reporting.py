@@ -12,6 +12,7 @@ import datetime
 import numpy as np
 import math
 import statistics
+import os
 
 class ReporterSet(object):
     """
@@ -161,7 +162,7 @@ class StdOutReporter(BaseReporter):
         print(msg)
 class TBReporter(BaseReporter):
     """Uses `print` and TensorBoard to output information about the run;"""
-    def __init__(self, print_species_detail,gen_buff, runs):
+    def __init__(self, print_species_detail,gen_buff, runs,datte):
         self.print_species_detail = print_species_detail
         self.gen_buff = gen_buff
         self.generation = None
@@ -172,7 +173,9 @@ class TBReporter(BaseReporter):
         self.spa = 15
         ##TensorBoard init
         LOG_DIR = "logs/neat-gym-" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.logger = SummaryWriter(f"logs/{runs}", comment="",flush_secs=180)
+
+        #self.logger = SummaryWriter(f"logs/{datte}/{runs:03d}", comment="",flush_secs=180)
+        self.logger = SummaryWriter(f"logs/{datte}/{runs}", comment="", flush_secs=180)
 
         #todo hyper parmetere do tensorboard:
         # self.logger.add_hparams(
@@ -222,7 +225,7 @@ class TBReporter(BaseReporter):
         print('Best fitness: {0:3.5f} - size: {1!r} - species {2} - id {3}'.format(best_genome.fitness,
                                                                                  best_genome.size(),
                                                                                  best_species_id,
-                                                                    best_genome.key))
+                                                                                 best_genome.key))
         self.logger.add_scalar(f"Best specie", best_species_id, self.generation)
         self.logger.add_scalar(f"Best Genome fitness", best_genome.fitness, self.generation)
         self.logger.add_scalar(f"Size of Best/nodes", best_genome.size()[0], self.generation)
@@ -243,7 +246,10 @@ class TBReporter(BaseReporter):
         print('\nBest individual in generation {0} meets fitness threshold - complexity: {1!r}'.format(
             self.generation, best.size()))
         self.logger.add_custom_scalars(self.Layout_species())
+        with open('config', 'r') as f:
+            self.logger.add_text("conf",f.read())
         self.logger.close()
+
 
     def species_stagnant(self, sid, species):
         if self.print_species_detail:
@@ -253,7 +259,7 @@ class TBReporter(BaseReporter):
         pass
     def specie_data2array(self,species):
         #specieArr=[] #TODO buffer for n generations
-
+        maxSFit=-100000
         for sid in sorted(species):                                                                         # iter Species
             specie      = species[sid]                                                                      # specie
             age         = self.generation - specie.created                                                  # age of specie
@@ -266,7 +272,12 @@ class TBReporter(BaseReporter):
             maxFit = specie.get_MaxFitness()
             if maxFit is not None:
                 self.logger.add_scalar(f"MaxFitness/sid_{sid}", maxFit,self.generation) #todo bude lepsie spravit to , ze ak to bude None tak to nezapise do tensorboardu
-            #self.logger.add_scalar(f"MeanFitness/sid_{sid}", specie.get_MeanFitness(), self.generation)
+                if (maxFit > maxSFit):
+                    # print(f"-------------------------->max Fitness {maxFit} specie: {sid}")
+                    maxSFit = maxFit
+            MeanFit = specie.get_MeanFitness()
+            if MeanFit is not None:
+                self.logger.add_scalar(f"MeanFitness/sid_{sid}", MeanFit, self.generation)
             #print("ALL ALL", specie.get_fitnesses())
             #print("MAX MAX",specie.get_MaxFitness())
             #print(f"Spiece:{specie.fitness:.3f}")
