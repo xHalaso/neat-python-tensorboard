@@ -6,6 +6,7 @@ and code for adding new user-defined ones
 
 import math
 import types
+from functools import partial
 
 
 def sigmoid_activation(z):
@@ -28,10 +29,14 @@ def tanh5_activation(z):
     z = max(-60.0, min(60.0, 5 * z))            #5?
     return math.tanh(5*z)
 
+def swish_activation(z):
+    beta = 1
+    z = max(-60.0, min(60.0, 5.0 * z))
+    return z / (1.0 + math.exp(-z * beta)) 
+
 def sin_activation(z):
     z = max(-60.0, min(60.0, 5.0 * z))
     return math.sin(z)
-
 
 def gauss_activation(z):
     z = max(-3.4, min(3.4, z))
@@ -133,6 +138,7 @@ class ActivationFunctionSet(object):
         self.add('tanh', tanh_activation)
         self.add('tanh3', tanh3_activation)
         self.add('tanh5', tanh5_activation)
+        self.add('swish', swish_activation)
         self.add('sin', sin_activation)
         self.add('gauss', gauss_activation)
         self.add('relu', relu_activation)
@@ -153,6 +159,19 @@ class ActivationFunctionSet(object):
     def add(self, name, function):
         validate_activation(function)
         self.functions[name] = function
+
+    def add_with_beta(self, name, function):
+        # example: swish 0.5
+        name_parts = name.split()
+        if len(name_parts) == 2 and name_parts[0] == 'swish':
+            try:
+                beta = float(name_parts[1])
+                swish_with_specific_beta = partial(function, beta)
+                self.functions[name] = swish_with_specific_beta
+            except ValueError:
+                raise ValueError(f"Invalid beta value for swish activation function. {name}")
+        else:
+            raise ValueError("Invalid function name format. Expected format: 'swish {beta}'")
 
     def get(self, name):
         f = self.functions.get(name)

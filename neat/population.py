@@ -47,6 +47,7 @@ class Population(object):
             self.population, self.species, self.generation = initial_state
 
         self.best_genome = None
+        self.best_fitness = None
 
     def add_reporter(self, reporter):
         self.reporters.add(reporter)
@@ -95,11 +96,13 @@ class Population(object):
                 if best is None or g.fitness > best.fitness:
                     best = g
             self.reporters.post_evaluate(self.config, self.population, self.species, best)
-
+            
             # Track the best genome ever seen.
             if self.best_genome is None or best.fitness > self.best_genome.fitness:
                 self.best_genome = best
-
+            if self.best_fitness is None or self.best_fitness < self.best_genome.fitness:
+                self.best_fitness = self.best_genome.fitness
+                print(f"Best fitness ever found! : {self.best_fitness}")
             if not self.config.no_fitness_termination:
                 # End if the fitness threshold is reached.
                 fv = self.fitness_criterion(g.fitness for g in self.population.values())
@@ -133,5 +136,5 @@ class Population(object):
 
         if self.config.no_fitness_termination:
             self.reporters.found_solution(self.config, self.generation, self.best_genome)
-
+        print(f"Best fitness: {self.best_fitness} and actual genome fitness: {self.best_genome.fitness}")
         return self.best_genome
