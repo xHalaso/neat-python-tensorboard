@@ -8,6 +8,67 @@ from neat.activations import ActivationFunctionSet
 from neat.aggregations import AggregationFunctionSet
 from itertools import count
 
+class FixedFloatAttribute(BaseAttribute):
+    """
+    Class for floating-point numeric attributes,
+    such as the response of a node or the weight of a connection.
+    """
+    _config_items = {"init_mean": [float, None],
+                     "init_stdev": [float, None],
+                     "init_type": [str, 'gaussian'],
+                     "replace_rate": [float, None],
+                     "mutate_rate": [float, None],
+                     "mutate_power": [float, None],
+                     "max_value": [float, None],
+                     "min_value": [float, None]}
+    mutate_value = 0.1
+
+    def clamp(self, value, config):
+        min_value = getattr(config, self.min_value_name)
+        max_value = getattr(config, self.max_value_name)
+        return max(min(value, max_value), min_value)
+
+    def init_value(self, config):
+        mean = getattr(config, self.init_mean_name)
+        stdev = getattr(config, self.init_stdev_name)
+        init_type = getattr(config, self.init_type_name).lower()
+
+        if ('gauss' in init_type) or ('normal' in init_type):
+            return self.clamp(gauss(mean, stdev), config)
+
+        if 'uniform' in init_type:
+            min_value = max(getattr(config, self.min_value_name),
+                            (mean - (2 * stdev)))
+            max_value = min(getattr(config, self.max_value_name),
+                            (mean + (2 * stdev)))
+            return uniform(min_value, max_value)
+
+        raise RuntimeError(f"Unknown init_type {getattr(config, self.init_type_name)!r} for {self.init_type_name!s}")
+
+    def mutate_value(self, value, config):
+        # mutate_rate is usually no lower than replace_rate, and frequently higher -
+        # so put first for efficiency
+        mutate_rate = getattr(config, self.mutate_rate_name)
+
+        r = random()
+        if r < mutate_rate:
+            mutate_power = getattr(config, self.mutate_power_name)
+            return self.clamp(value + random.uniform(-mutate_value, mutate_value), config)
+
+        replace_rate = getattr(config, self.replace_rate_name)
+
+        r = random()
+        if r < replace_rate:
+            return self.init_value(config)
+
+        return value
+
+    def validate(self, config):
+        min_value = getattr(config, self.min_value_name)
+        max_value = getattr(config, self.max_value_name)
+        if max_value < min_value:
+            raise RuntimeError("Invalid min/max configuration for {self.name}")
+
 class FixedStructureNodeGene(BaseGene):
     _gene_attributes = [
                         FloatAttribute('bias'),
@@ -18,19 +79,18 @@ class FixedStructureNodeGene(BaseGene):
     def distance(self, other, config):
         return 0.0
 
-
 class FixedStructureConnectionGene(BaseGene):
-    _gene_attributes = [FloatAttribute('weight'),
+    _gene_attributes = [FixedFloatAttribute('weight'),
                         BoolAttribute('enabled')]
-    # Skip connection enabled mutation
-    # def mutate(self, config):
-    #     for a in self._gene_attributes:
-    #         if not isinstance(a, BoolAttribute):
-    #             v = getattr(self, a.name)
-    #             setattr(self, a.name, a.mutate_value(v, config))
+
+    def mutate(self, config):
+        # Mutate only weights
+        a = self._gene_attributes[0]
+        v = getattr(self, a.name)
+        setattr(self, a.name, a.mutate_value(v, config))
 
     def distance(self, other, config):
-        d = abs(self.weight - other.weight) + abs(self.bias - other.bias)
+        d = abs(self.weight - other.weight)
         return d
     
 class FixedStructureGenomeConfig(object):
