@@ -7,6 +7,7 @@ from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute, Base
 from neat.activations import ActivationFunctionSet
 from neat.aggregations import AggregationFunctionSet
 from itertools import count
+from random import gauss, random, uniform
 
 class FixedFloatAttribute(BaseAttribute):
     """
@@ -21,7 +22,7 @@ class FixedFloatAttribute(BaseAttribute):
                      "mutate_power": [float, None],
                      "max_value": [float, None],
                      "min_value": [float, None]}
-    mutate_value = 0.1
+    mutate_amp = 0.1
 
     def clamp(self, value, config):
         min_value = getattr(config, self.min_value_name)
@@ -53,7 +54,7 @@ class FixedFloatAttribute(BaseAttribute):
         r = random()
         if r < mutate_rate:
             mutate_power = getattr(config, self.mutate_power_name)
-            return self.clamp(value + random.uniform(-mutate_value, mutate_value), config)
+            return self.clamp(value + uniform(-self.mutate_amp, self.mutate_amp), config)
 
         replace_rate = getattr(config, self.replace_rate_name)
 
