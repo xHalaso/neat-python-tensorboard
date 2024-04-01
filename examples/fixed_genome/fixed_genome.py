@@ -3,7 +3,7 @@ from neat.genome import DefaultGenome
 from neat.genes import DefaultNodeGene, DefaultConnectionGene
 from neat.config import ConfigParameter, write_pretty_params
 from neat.genes import BaseGene
-from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute
+from neat.attributes import FloatAttribute, BoolAttribute, StringAttribute, BaseAttribute
 from neat.activations import ActivationFunctionSet
 from neat.aggregations import AggregationFunctionSet
 from itertools import count
